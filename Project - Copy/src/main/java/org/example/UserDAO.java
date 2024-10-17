@@ -140,6 +140,7 @@ public class UserDAO {
 
     // Method to store booking details in the 'booking' table
     public boolean createBooking(int eventId, int userId, int venueId, String customization, String foodPreference, String decorationPreference, String username) {
+        // Updated method to include username as a parameter
         String query = "INSERT INTO booking (event_id, user_id, venue_id, customization, food_preference, decoration_preference, username) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, eventId);
@@ -148,7 +149,7 @@ public class UserDAO {
             stmt.setString(4, customization);
             stmt.setString(5, foodPreference);
             stmt.setString(6, decorationPreference);
-            stmt.setString(7, username);  // Add the username parameter
+            stmt.setString(7, username);  // Now username is passed as a parameter
             int rowsInserted = stmt.executeUpdate();
             return rowsInserted > 0; // Return true if at least one row was inserted
         } catch (SQLException e) {
@@ -156,6 +157,35 @@ public class UserDAO {
             return false; // Return false on error
         }
     }
+
+    public List<Booking> getBookedEvents(int userId) {
+        List<Booking> bookings = new ArrayList<>();
+        String query = "SELECT e.event_name, v.venue_name, b.customization, b.food_preference, b.decoration_preference, b.booking_date " +
+                "FROM booking b " +
+                "JOIN events e ON b.event_id = e.event_id " + // Assuming there's a join with events to get event_name
+                "JOIN venues v ON b.venue_id = v.venue_id " +
+                "WHERE b.user_id = ?";
+
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                String eventName = rs.getString("event_name");
+                String venueName = rs.getString("venue_name");
+                String customization = rs.getString("customization");
+                String foodPreference = rs.getString("food_preference");
+                String decorationPreference = rs.getString("decoration_preference");
+                String date = rs.getString("booking_date"); // Assuming the date column is named booking_date
+                bookings.add(new Booking(eventName, venueName, customization, foodPreference, decorationPreference, date));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return bookings;
+    }
+
+
+
 
 
 }

@@ -14,7 +14,6 @@ public class Main {
 
             // Main loop to keep showing the menu after registration or login
             while (true) {
-                // First menu: Choose between registration or login
                 System.out.println("Welcome! Choose an option:");
                 System.out.println("1. Register");
                 System.out.println("2. Login");
@@ -26,39 +25,12 @@ public class Main {
                 switch (choice) {
                     case 1:
                         // Registration process
-                        System.out.println("Registration:");
-                        System.out.print("Enter username: ");
-                        String username = scanner.nextLine();
-                        System.out.print("Enter email: ");
-                        String email = scanner.nextLine();
-                        System.out.print("Enter password: ");
-                        String password = scanner.nextLine();
-                        System.out.print("Enter phone: ");
-                        String phone = scanner.nextLine();
-                        boolean created = userDAO.createUser(username, email, password, phone);
-                        if (created) {
-                            System.out.println("User created successfully.");
-                        } else {
-                            System.out.println("Failed to create user.");
-                        }
-                        // After registration, ask the user again if they want to log in or register
+                        registerUser(userDAO, scanner);
                         break;
 
                     case 2:
                         // Login process
-                        System.out.println("Login:");
-                        System.out.print("Enter email: ");
-                        String loginEmail = scanner.nextLine();
-                        System.out.print("Enter password: ");
-                        String loginPassword = scanner.nextLine();
-                        User user = userDAO.validateUser(loginEmail, loginPassword);
-                        if (user != null) {
-                            System.out.println("Login successful! Welcome, " + user.getUsername());
-                            // Proceed to event selection after successful login
-                            handleEventCreation(userDAO, user, scanner);
-                        } else {
-                            System.out.println("Invalid email or password. Please try again.");
-                        }
+                        loginUser(userDAO, scanner);
                         break;
 
                     case 3:
@@ -77,8 +49,69 @@ public class Main {
         }
     }
 
-    // Method to handle event creation and venue selection after login
-    public static void handleEventCreation(UserDAO userDAO, User user, Scanner scanner) {
+    private static void registerUser(UserDAO userDAO, Scanner scanner) {
+        System.out.println("Registration:");
+        System.out.print("Enter username: ");
+        String username = scanner.nextLine();
+        System.out.print("Enter email: ");
+        String email = scanner.nextLine();
+        System.out.print("Enter password: ");
+        String password = scanner.nextLine();
+        System.out.print("Enter phone: ");
+        String phone = scanner.nextLine();
+
+        boolean created = userDAO.createUser(username, email, password, phone);
+        if (created) {
+            System.out.println("User created successfully.");
+        } else {
+            System.out.println("Failed to create user.");
+        }
+    }
+
+    private static void loginUser(UserDAO userDAO, Scanner scanner) {
+        System.out.println("Login:");
+        System.out.print("Enter email: ");
+        String loginEmail = scanner.nextLine();
+        System.out.print("Enter password: ");
+        String loginPassword = scanner.nextLine();
+        User user = userDAO.validateUser(loginEmail, loginPassword);
+        if (user != null) {
+            System.out.println("Login successful! Welcome, " + user.getUsername());
+            handleUserMenu(userDAO, user, scanner);
+        } else {
+            System.out.println("Invalid email or password. Please try again.");
+        }
+    }
+
+    private static void handleUserMenu(UserDAO userDAO, User user, Scanner scanner) {
+        int choice;
+        while (true) {
+            System.out.println("Choose an option:");
+            System.out.println("1. Book an event");
+            System.out.println("2. View booked events");
+            System.out.println("3. Logout");
+            System.out.print("Enter your choice: ");
+            choice = scanner.nextInt();
+            scanner.nextLine(); // Consume the newline character
+
+            switch (choice) {
+                case 1:
+                    handleEventCreation(userDAO, user, scanner);
+                    break;
+                case 2:
+                    viewBookedEvents(userDAO, user);
+                    break;
+                case 3:
+                    System.out.println("Logging out...");
+                    return; // Return to the main menu
+                default:
+                    System.out.println("Invalid choice. Please choose again.");
+                    break;
+            }
+        }
+    }
+
+    private static void handleEventCreation(UserDAO userDAO, User user, Scanner scanner) {
         // Fetch and display event types from the database
         System.out.println("Select an event type:");
         List<String> eventTypes = userDAO.getEventTypes();
@@ -130,5 +163,19 @@ public class Main {
             System.out.println("Failed to create event.");
         }
     }
+
+    private static void viewBookedEvents(UserDAO userDAO, User user) {
+        List<Booking> bookings = userDAO.getBookedEvents(user.getUserId());
+        System.out.println("Your booked events:");
+        for (Booking booking : bookings) {
+            System.out.println("Event: " + booking.getEventName() +
+                    ", Venue: " + booking.getVenueName() +
+                    ", Customization: " + booking.getCustomization() +
+                    ", Food Preference: " + booking.getFoodPreference() +
+                    ", Decoration Preference: " + booking.getDecorationPreference() +
+                    ", Date: " + booking.getDate()); // Include date here
+        }
+    }
+
 
 }
