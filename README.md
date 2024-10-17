@@ -50,3 +50,4 @@ CREATE TABLE booking (
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (venue_id) REFERENCES venues(venue_id)
 );
+ALTER TABLE booking ADD COLUMN booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
